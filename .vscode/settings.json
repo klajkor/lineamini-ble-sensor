@@ -1,0 +1,23 @@
+{
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    "idf.port": "/dev/ttyUSB0",
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: Microsoft, AlignConsecutiveDeclarations: true, IndentWidth: 4, Standard: Cpp11, ColumnLimit: 119 }",
+    "editor.formatOnSave": true,
+    "cmake.configureOnOpen": false,
+    "files.associations": {
+        "*.h": "c",
+        "*.ipp": "c",
+        "*.inc": "c",
+        "iomanip": "c",
+        "array": "c",
+        "cmath": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "initializer_list": "cpp",
+        "*.tcc": "c"
+    },
+    "C_Cpp.intelliSenseEngineFallback": "Enabled"
+}
