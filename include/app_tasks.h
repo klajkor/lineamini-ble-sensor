@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "app_paddle_state.h"
 #include "app_queue.h"
 #include "app_voltmeter.h"
 #include "ble_data_frame.h"

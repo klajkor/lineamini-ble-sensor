@@ -43,12 +43,6 @@ typedef enum ble_data_frame_ret_val_enum
     ble_data_frame_ret_val_End
 } ble_data_frame_ret_val_enum;
 
-typedef enum paddle_state_enum
-{
-    ePADDLE_STATE_OFF = 0x00,
-    ePADDLE_STATE_ON = 0x01
-} paddle_state_enum;
-
 typedef enum messageValidate_ret_val_enum
 {
     validate_OK = 0,

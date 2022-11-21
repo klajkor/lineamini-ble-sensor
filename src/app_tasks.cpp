@@ -120,7 +120,7 @@ void xTaskDataFrameBuild(void *pvParameters)
     while (1)
     {
         measured_voltages = voltmeter_get_last_reading();
-        build_ble_frame_to_send(ePADDLE_STATE_OFF, 0, 0, measured_voltages.vcc_millivolt,
+        build_ble_frame_to_send(get_paddle_switch_state(), 0, 0, measured_voltages.vcc_millivolt,
                                 measured_voltages.ntc_millivolt, &ble_data_frame);
         if (measurements_q_handle != NULL)
         {
