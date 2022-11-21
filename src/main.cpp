@@ -48,15 +48,21 @@ void setup(void)
 
 void loop()
 {
-    ble_data_frame_struct_t message_from_queue;
+    ble_data_frame_union_t message_from_queue;
     if (measurements_q_handle != NULL)
     {
         if (xQueueReceive(measurements_q_handle, &message_from_queue, QUEUE_REC_WAIT) == pdPASS)
         {
-            Serial.print("VCC mV: ");
-            Serial.print(message_from_queue.vcc_millivolt);
-            Serial.print(" NTC mV: ");
-            Serial.println(message_from_queue.ntc_millivolt);
+            if (messageValidate(&message_from_queue) == validate_OK)
+            {
+                Serial.printf("Paddle state: %d, ", message_from_queue.struct_data_frame.paddle_state);
+                Serial.printf("VCC mV: %4i, ", message_from_queue.struct_data_frame.vcc_millivolt);
+                Serial.printf("NTC mV: %4i\r\n", message_from_queue.struct_data_frame.ntc_millivolt);
+            }
+            else
+            {
+                Serial.println("Invalid data frame!");
+            }
         }
     }
     vTaskDelay(DELAY_1_MilliSec);

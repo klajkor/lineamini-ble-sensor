@@ -56,14 +56,12 @@ uint8_t gencrc8(uint8_t *data, uint8_t len)
     return crc;
 }
 
-messageValidate_ret_val_enum messageValidate(ble_data_frame_array_t data_frame)
+messageValidate_ret_val_enum messageValidate(ble_data_frame_union_t *pdata_frame)
 {
     messageValidate_ret_val_enum retval;
     uint8_t                      msgValid;
-    ble_data_frame_union_t      *pStruct;
-    pStruct = (ble_data_frame_union_t *)data_frame;
     msgValid = 1;
-    if ((msgValid == 1) && (pStruct->struct_data_frame.start_byte == FRAME_START_BYTE))
+    if ((msgValid == 1) && (pdata_frame->struct_data_frame.start_byte == FRAME_START_BYTE))
     {
         msgValid = 1;
     }
@@ -72,7 +70,7 @@ messageValidate_ret_val_enum messageValidate(ble_data_frame_array_t data_frame)
         msgValid = 0;
         retval = validate_StartByteError;
     }
-    if ((msgValid == 1) && (pStruct->struct_data_frame.stop_byte == FRAME_STOP_BYTE))
+    if ((msgValid == 1) && (pdata_frame->struct_data_frame.stop_byte == FRAME_STOP_BYTE))
     {
         msgValid = 1;
     }
@@ -81,7 +79,7 @@ messageValidate_ret_val_enum messageValidate(ble_data_frame_array_t data_frame)
         msgValid = 0;
         retval = validate_StartByteError;
     }
-    if ((msgValid == 1) && (pStruct->struct_data_frame.crc_byte == gencrc8(data_frame, FRAME_CRC_BYTE_POS)))
+    if ((msgValid == 1) && (pdata_frame->struct_data_frame.crc_byte == gencrc8((uint8_t *)pdata_frame, FRAME_CRC_BYTE_POS)))
     {
         msgValid = 1;
     }
