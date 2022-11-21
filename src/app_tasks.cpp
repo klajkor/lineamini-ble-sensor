@@ -10,16 +10,18 @@
 #define MAX_FAILED_SENSOR_READS (40U)
 #define FAILED_SENSOR_READS_DURATION_IN_MSEC ((int64_t)(24 * 60 * 60 * 1000)) // 1 day in millisec
 
-#define STANDARD_TASK_STACK_SIZE ((uint32_t)(2 * 1024))  // 2k
-#define VOLTMETER_TASK_STACK_SIZE ((uint32_t)(4 * 1024)) // 4k
+#define STANDARD_TASK_STACK_SIZE ((uint32_t)(2 * 1024))       // 2k
+#define VOLTMETER_TASK_STACK_SIZE ((uint32_t)(4 * 1024))      // 4k
+#define DATAFRAMEBUILD_TASK_STACK_SIZE ((uint32_t)(4 * 1024)) // 4k
 
-#define PRIO_VoltMeterRead ((UBaseType_t)7)
+#define PRIO_VOLTMETERREAD ((UBaseType_t)7)
+#define PRIO_DATAFRAMEBUILD ((UBaseType_t)7)
 
-#define DELAY_VoltMeterRead_MilliSec (250U)
-#define DELAY_VoltMeterRead ((TickType_t)((DELAY_VoltMeterRead_MilliSec) / portTICK_PERIOD_MS))
-#define CYCLES_VoltMeterRead ((uint32_t)(1 * 1 * (1000 / DELAY_VoltMeterRead_MilliSec)))
+#define DELAY_VOLTMETERREAD_MS (pdMS_TO_TICKS(100U))
+#define DELAY_DATAFRAMEBUILD_MS (pdMS_TO_TICKS(200U))
 
 TaskHandle_t xHandle_VoltMeterRead = NULL;
+TaskHandle_t xHandle_DataFrameBuild = NULL;
 
 void Create_App_Tasks(void)
 {
@@ -29,8 +31,19 @@ void Create_App_Tasks(void)
                                         "VoltMeterRead",           /* Text name for the task. */
                                         VOLTMETER_TASK_STACK_SIZE, /* Stack size in words, not bytes. */
                                         (void *)1,                 /* Parameter passed into the task. */
-                                        PRIO_VoltMeterRead,        /* Priority at which the task is created. */
+                                        PRIO_VOLTMETERREAD,        /* Priority at which the task is created. */
                                         &xHandle_VoltMeterRead,    /* Used to pass out the created task's handle. */
+                                        APP_CPU_NUM);
+    if (xReturned != pdPASS)
+    {
+        Critical_Error_Handler();
+    }
+    xReturned = xTaskCreatePinnedToCore(xTaskDataFrameBuild,            /* Function that implements the task. */
+                                        "DataFrameBuild",               /* Text name for the task. */
+                                        DATAFRAMEBUILD_TASK_STACK_SIZE, /* Stack size in words, not bytes. */
+                                        (void *)1,                      /* Parameter passed into the task. */
+                                        PRIO_DATAFRAMEBUILD,            /* Priority at which the task is created. */
+                                        &xHandle_DataFrameBuild, /* Used to pass out the created task's handle. */
                                         APP_CPU_NUM);
     if (xReturned != pdPASS)
     {
@@ -41,50 +54,23 @@ void Create_App_Tasks(void)
 void xTaskVoltMeterRead(void *pvParameters)
 {
     uint32_t task_delay;
-    int8_t   not_used = 0;
     uint32_t read_cycles = 0;
     uint32_t failed_reads = 0;
     int64_t  task_timer_started = esp_timer_get_time();
     int64_t  failed_sensor_reads_duration = FAILED_SENSOR_READS_DURATION_IN_MSEC * 1000;
-    uint8_t  status_to_be_sent = 0;
 
     measured_voltage_struct_t measured_voltages;
 
-    ble_data_frame_array_t ble_data_frame;
-
-    measured_voltages.vcc_millivolt = 0;
-    measured_voltages.ntc_millivolt = 0;
-    task_delay = DELAY_VoltMeterRead;
+    measured_voltages = {0, 0};
+    task_delay = DELAY_VOLTMETERREAD_MS;
 
     vTaskDelay(DELAY_10_MilliSec);
-    while (voltmeter_init_result == VOLTMETER_INIT_OK &&
-           (failed_reads < (MAX_FAILED_SENSOR_READS * CYCLES_VoltMeterRead)))
+    while (voltmeter_init_result == VOLTMETER_INIT_OK && (failed_reads < (MAX_FAILED_SENSOR_READS)))
     {
-        read_cycles++;
         measured_voltages = read_voltmeter();
         if (measured_voltages.vcc_millivolt >= 0 && measured_voltages.ntc_millivolt >= 0)
         {
-            if (read_cycles >= CYCLES_VoltMeterRead)
-            {
-                read_cycles = 0;
-                build_ble_frame_to_send(ePADDLE_STATE_OFF, 0, 0, measured_voltages.vcc_millivolt,
-                                        measured_voltages.ntc_millivolt, &ble_data_frame);
-                if (measurements_q_handle != NULL)
-                {
-                    if (xQueueSend(measurements_q_handle, &ble_data_frame, QUEUE_SEND_WAIT) == pdTRUE)
-                    {
-                        taskYIELD();
-                    }
-                    else
-                    {
-                        Serial.println("xQueueSend Error");
-                    }
-                }
-                else
-                {
-                    Serial.println("measurements_q_handle is NULL!");
-                }
-            }
+            yield();
         }
         else
         {
@@ -116,4 +102,50 @@ void xTaskVoltMeterRead(void *pvParameters)
     Serial.println("!> Too many failed reads of voltmeter!");
     Serial.println("!> Deleting xTaskVoltMeterRead() task.");
     vTaskDelete(xHandle_VoltMeterRead);
+}
+
+void xTaskDataFrameBuild(void *pvParameters)
+{
+    uint32_t task_delay;
+
+    measured_voltage_struct_t measured_voltages;
+
+    ble_data_frame_array_t ble_data_frame;
+
+    measured_voltages.vcc_millivolt = 0;
+    measured_voltages.ntc_millivolt = 0;
+    task_delay = DELAY_DATAFRAMEBUILD_MS;
+
+    vTaskDelay(DELAY_500_MilliSec);
+    while (1)
+    {
+        measured_voltages = voltmeter_get_last_reading();
+        build_ble_frame_to_send(ePADDLE_STATE_OFF, 0, 0, measured_voltages.vcc_millivolt,
+                                measured_voltages.ntc_millivolt, &ble_data_frame);
+        if (measurements_q_handle != NULL)
+        {
+            if (xQueueSend(measurements_q_handle, &ble_data_frame, QUEUE_SEND_WAIT) == pdTRUE)
+            {
+                taskYIELD();
+            }
+            else
+            {
+                Serial.println("xQueueSend Error");
+            }
+        }
+        else
+        {
+            Serial.println("measurements_q_handle is NULL!");
+        }
+
+#ifdef SERIAL_STACK_USAGE_LOG
+        Serial.print("xTaskDataFrameBuild:");
+        Serial.print(uxTaskGetStackHighWaterMark(NULL)); // stack size used
+        Serial.println();
+        Serial.flush();
+#endif
+        vTaskDelay(task_delay);
+    }
+    Serial.println("!> Deleting xTaskDataFrameBuild() task.");
+    vTaskDelete(xHandle_DataFrameBuild);
 }

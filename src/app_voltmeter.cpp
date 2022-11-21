@@ -66,6 +66,8 @@ measured_voltage_struct_t read_voltmeter(void)
         measurements = {-2, -2};
         break;
     }
+    last_measured_voltage.vcc_millivolt = measurements.vcc_millivolt;
+    last_measured_voltage.ntc_millivolt = measurements.ntc_millivolt;
     return measurements;
 }
 
