@@ -10,8 +10,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-// Define status LED pins
+// Define error and status LED pins
 #define GPIO_ERROR_PIN (2U) // ESP32 built-in LED
+#define GPIO_STATUS_PIN (2U)
 
 // INA3221 module I2C address
 #define INA3221_I2C_ADDR (0x40)

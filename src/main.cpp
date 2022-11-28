@@ -44,6 +44,7 @@ void setup(void)
     // BLE_init();
     Create_Queues();
     Create_App_Tasks();
+    init_paddle_state_module();
 }
 
 void loop()
@@ -71,15 +72,12 @@ void loop()
 void Critical_Error_Handler(void)
 {
     Serial.println("Crital Error Occured, Program Halted");
-#ifdef GPIO_ERROR_PIN
-    digitalWrite(GPIO_ERROR_PIN, HIGH);
-#endif
     while (1)
     {
 #ifdef GPIO_ERROR_PIN
-        digitalWrite(GPIO_ERROR_PIN, HIGH);
+        digitalWrite(GPIO_ERROR_PIN, ERROR_LED_ON);
         vTaskDelay(200);
-        digitalWrite(GPIO_ERROR_PIN, LOW);
+        digitalWrite(GPIO_ERROR_PIN, ERROR_LED_OFF);
 #endif
         vTaskDelay(200);
     }
@@ -88,11 +86,12 @@ void Critical_Error_Handler(void)
 void GPIO_init(void)
 {
     pinMode(GPIO_REED_PIN, INPUT_PULLUP);
+    pinMode(GPIO_STATUS_PIN, OUTPUT);
 #ifdef GPIO_ERROR_PIN
     pinMode(GPIO_ERROR_PIN, OUTPUT);
-    digitalWrite(GPIO_ERROR_PIN, HIGH);
+    digitalWrite(GPIO_ERROR_PIN, ERROR_LED_ON);
     delay(300);
-    digitalWrite(GPIO_ERROR_PIN, LOW);
+    digitalWrite(GPIO_ERROR_PIN, ERROR_LED_OFF);
 #endif
     yield();
     delay(50);

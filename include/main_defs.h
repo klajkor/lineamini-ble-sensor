@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "device_config.h"
+
 #define DELAY_1_MilliSec (pdMS_TO_TICKS(1))
 #define DELAY_2_MilliSec (pdMS_TO_TICKS(2))
 #define DELAY_5_MilliSec (pdMS_TO_TICKS(5))
@@ -25,8 +27,13 @@
 
 #define I2C_CHECK_OK (0)
 
+#define ERROR_LED_ON HIGH  /* LED Switch on level */
+#define ERROR_LED_OFF LOW  /* LED Switch off level */
+#define STATUS_LED_ON HIGH /* LED Switch on level */
+#define STATUS_LED_OFF LOW /* LED Switch off level */
+
 // Uncomment the below line to get Stack usege log on Serial
-//#define SERIAL_STACK_USAGE_LOG 1
+// #define SERIAL_STACK_USAGE_LOG 1
 
 void Critical_Error_Handler(void);
 void GPIO_init(void);

@@ -5,7 +5,7 @@
 |GPIO|Bus|module|function|
 |----|---|------|--------|
 |01|UART_0|CP2102 USB|TX|
-|02|VSPI|n/a|(not in use)|
+|02|VSPI|n/a|Built-in LED|
 |03|UART_0|CP2102 USB|RX|
 |04|n/a|n/a|(not in use)|
 |05|VSPI|n/a|CS (not in use)|
