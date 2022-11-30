@@ -76,6 +76,7 @@ void xTask_read_reed_switch(void *pvParameters)
             {
                 current_paddle_state = PADDLE_STATE_ON;
                 status_led_on();
+                start_shot_timer();
             }
         }
         else
@@ -84,6 +85,7 @@ void xTask_read_reed_switch(void *pvParameters)
             {
                 current_paddle_state = PADDLE_STATE_OFF;
                 status_led_off();
+                stop_shot_timer();
             }
         }
 #ifdef SERIAL_STACK_USAGE_LOG

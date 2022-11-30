@@ -13,7 +13,7 @@
 
 #define FRAME_START_BYTE (0xA5)
 #define FRAME_STOP_BYTE (0x0A)
-#define FRAME_CRC_BYTE_POS ((uint8_t)12)
+#define FRAME_CRC_BYTE_POS ((uint8_t)13)
 #define CRC_DEFAULT_VALUE (0xFF)
 #define CRC_POLYNOM (0x31)
 
@@ -23,6 +23,7 @@ typedef struct ble_data_frame_struct_t
     uint8_t paddle_state;
     uint8_t timer_minutes;
     uint8_t timer_seconds;
+    uint8_t timer_state;
     int32_t vcc_millivolt;
     int32_t ntc_millivolt;
     uint8_t crc_byte;
@@ -53,8 +54,9 @@ typedef enum messageValidate_ret_val_enum
 } messageValidate_ret_val_enum;
 
 ble_data_frame_ret_val_enum  build_ble_frame_to_send(uint8_t paddle_state_i, uint8_t timer_minutes_i,
-                                                     uint8_t timer_seconds_i, int32_t vcc_millivolt_i,
-                                                     int32_t ntc_millivolt_i, ble_data_frame_array_t *p_data_frame);
+                                                     uint8_t timer_seconds_i, uint8_t timer_state_i,
+                                                     int32_t vcc_millivolt_i, int32_t ntc_millivolt_i,
+                                                     ble_data_frame_array_t *p_data_frame);
 messageValidate_ret_val_enum messageValidate(ble_data_frame_union_t *pdata_frame);
 
 uint8_t gencrc8(uint8_t *data, uint8_t len);

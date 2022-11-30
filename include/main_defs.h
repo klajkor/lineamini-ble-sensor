@@ -18,6 +18,7 @@
 #define DELAY_2_MilliSec (pdMS_TO_TICKS(2))
 #define DELAY_5_MilliSec (pdMS_TO_TICKS(5))
 #define DELAY_10_MilliSec (pdMS_TO_TICKS(10))
+#define DELAY_50_MilliSec (pdMS_TO_TICKS(50))
 #define DELAY_100_MilliSec (pdMS_TO_TICKS(100))
 #define DELAY_500_MilliSec (pdMS_TO_TICKS(500))
 #define DELAY_1_Sec (pdMS_TO_TICKS(1000))

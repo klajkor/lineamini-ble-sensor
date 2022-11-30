@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "app_timer.h"
 #include "main_defs.h"
 
 typedef enum

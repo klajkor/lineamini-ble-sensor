@@ -14,6 +14,7 @@
 
 #include "app_paddle_state.h"
 #include "app_queue.h"
+#include "app_timer.h"
 #include "app_voltmeter.h"
 #include "ble_data_frame.h"
 #include "device_config.h"

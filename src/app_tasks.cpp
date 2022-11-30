@@ -109,6 +109,7 @@ void xTaskDataFrameBuild(void *pvParameters)
     uint32_t task_delay;
 
     measured_voltage_struct_t measured_voltages;
+    shot_timer_t              shot_timer_values;
 
     ble_data_frame_array_t ble_data_frame;
 
@@ -120,7 +121,9 @@ void xTaskDataFrameBuild(void *pvParameters)
     while (1)
     {
         measured_voltages = voltmeter_get_last_reading();
-        build_ble_frame_to_send(get_paddle_switch_state(), 0, 0, measured_voltages.vcc_millivolt,
+        shot_timer_values = get_shot_timer_values();
+        build_ble_frame_to_send(get_paddle_switch_state(), shot_timer_values.minutes, shot_timer_values.seconds,
+                                (uint8_t)shot_timer_values.state, measured_voltages.vcc_millivolt,
                                 measured_voltages.ntc_millivolt, &ble_data_frame);
         if (measurements_q_handle != NULL)
         {

@@ -7,8 +7,9 @@
 #include "ble_data_frame.h"
 
 ble_data_frame_ret_val_enum build_ble_frame_to_send(uint8_t paddle_state_i, uint8_t timer_minutes_i,
-                                                    uint8_t timer_seconds_i, int32_t vcc_millivolt_i,
-                                                    int32_t ntc_millivolt_i, ble_data_frame_array_t *p_data_frame)
+                                                    uint8_t timer_seconds_i, uint8_t timer_state_i,
+                                                    int32_t vcc_millivolt_i, int32_t ntc_millivolt_i,
+                                                    ble_data_frame_array_t *p_data_frame)
 {
     uint16_t                    i;
     uint8_t                     crc_byte;
@@ -22,6 +23,7 @@ ble_data_frame_ret_val_enum build_ble_frame_to_send(uint8_t paddle_state_i, uint
         data_frame.struct_data_frame.paddle_state = paddle_state_i;
         data_frame.struct_data_frame.timer_minutes = timer_minutes_i;
         data_frame.struct_data_frame.timer_seconds = timer_seconds_i;
+        data_frame.struct_data_frame.timer_state = timer_state_i;
         data_frame.struct_data_frame.vcc_millivolt = vcc_millivolt_i;
         data_frame.struct_data_frame.ntc_millivolt = ntc_millivolt_i;
         crc_byte = gencrc8(data_frame.array_data_frame, FRAME_CRC_BYTE_POS);
@@ -79,7 +81,8 @@ messageValidate_ret_val_enum messageValidate(ble_data_frame_union_t *pdata_frame
         msgValid = 0;
         retval = validate_StartByteError;
     }
-    if ((msgValid == 1) && (pdata_frame->struct_data_frame.crc_byte == gencrc8((uint8_t *)pdata_frame, FRAME_CRC_BYTE_POS)))
+    if ((msgValid == 1) &&
+        (pdata_frame->struct_data_frame.crc_byte == gencrc8((uint8_t *)pdata_frame, FRAME_CRC_BYTE_POS)))
     {
         msgValid = 1;
     }

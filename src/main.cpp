@@ -15,6 +15,7 @@
 #include "app_nvs.h"
 #include "app_queue.h"
 #include "app_tasks.h"
+#include "app_timer.h"
 #include "app_voltmeter.h"
 #include "ble_data_frame.h"
 #include "device_config.h"
@@ -45,6 +46,7 @@ void setup(void)
     Create_Queues();
     Create_App_Tasks();
     init_paddle_state_module();
+    init_timers();
 }
 
 void loop()
@@ -57,6 +59,9 @@ void loop()
             if (messageValidate(&message_from_queue) == validate_OK)
             {
                 Serial.printf("Paddle state: %d, ", message_from_queue.struct_data_frame.paddle_state);
+                Serial.printf("%02d:%02d ", message_from_queue.struct_data_frame.timer_minutes,
+                              message_from_queue.struct_data_frame.timer_seconds);
+                Serial.printf("Timer state: %d, ", message_from_queue.struct_data_frame.timer_state);
                 Serial.printf("VCC mV: %4i, ", message_from_queue.struct_data_frame.vcc_millivolt);
                 Serial.printf("NTC mV: %4i\r\n", message_from_queue.struct_data_frame.ntc_millivolt);
             }
@@ -66,7 +71,7 @@ void loop()
             }
         }
     }
-    vTaskDelay(DELAY_1_MilliSec);
+    vTaskDelay(DELAY_50_MilliSec);
 }
 
 void Critical_Error_Handler(void)
