@@ -31,11 +31,11 @@ typedef struct shot_timer_t
 } shot_timer_t;
 
 void         init_timers(void);
-void         vSecondsTimerCallback(TimerHandle_t xTimer);
+static void  vSecondsTimerCallback(TimerHandle_t xTimer);
 void         start_shot_timer(void);
 void         stop_shot_timer(void);
 void         reset_shot_timer(void);
-void         vCooldownTimerCallback(TimerHandle_t xTimer);
+static void  vCooldownTimerCallback(TimerHandle_t xTimer);
 void         start_cooldown_timer(void);
 void         stop_cooldown_timer(void);
 shot_timer_t get_shot_timer_values(void);
