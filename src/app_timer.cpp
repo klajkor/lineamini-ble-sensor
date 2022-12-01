@@ -12,8 +12,6 @@
 #define SECONDS_TIMER_PERIOD (pdMS_TO_TICKS(1000U))
 #define COOLDOWN_TIMER_PERIOD (pdMS_TO_TICKS(3000U))
 
-uint8_t       seconds_counter;
-uint8_t       minutes_counter;
 TimerHandle_t xSecondsTimer;
 BaseType_t    xSecondsTimerStarted;
 TimerHandle_t xCooldownTimer;
@@ -47,8 +45,6 @@ void init_timers(void)
 
 void vSecondsTimerCallback(TimerHandle_t xTimer)
 {
-    TickType_t xTimeNow;
-
     espresso_shot_timer.seconds++;
     if (espresso_shot_timer.seconds >= 60)
     {
