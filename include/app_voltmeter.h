@@ -35,10 +35,4 @@ extern voltmeter_init_result_t voltmeter_init_result;
 
 void                      voltmeter_init(void);
 measured_voltage_struct_t voltmeter_get_last_reading(void);
-
 measured_voltage_struct_t read_voltmeter(void);
-
-/*
-void voltmeter_convert_reading_to_str(int32_t light_level, char *voltmeter_str_o, uint32_t str_size);
-void voltmeter_convert_reading_to_long_str(int32_t light_level, char *voltmeter_str_o, uint32_t str_size);
-*/

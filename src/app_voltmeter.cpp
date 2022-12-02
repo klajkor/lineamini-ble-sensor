@@ -70,17 +70,3 @@ measured_voltage_struct_t read_voltmeter(void)
     last_measured_voltage.ntc_millivolt = measurements.ntc_millivolt;
     return measurements;
 }
-
-/*
-void voltmeter_convert_reading_to_str(int32_t light_level, char *voltmeter_str_o, uint32_t str_size)
-{
-    memset(voltmeter_str_o, 0, str_size);
-    snprintf(voltmeter_str_o, str_size - 1, "%5d lx", light_level);
-}
-
-void voltmeter_convert_reading_to_long_str(int32_t light_level, char *voltmeter_str_o, uint32_t str_size)
-{
-    memset(voltmeter_str_o, 0, str_size);
-    snprintf(voltmeter_str_o, str_size - 1, "Light level: %d lux", light_level);
-}
-*/
