@@ -21,5 +21,5 @@
 #include "main_defs.h"
 
 void Create_App_Tasks(void);
-void xTaskVoltMeterRead(void *pvParameters);
-void xTaskDataFrameBuild(void *pvParameters);
+static void xTaskVoltMeterRead(void *pvParameters);
+static void xTaskDataFrameBuild(void *pvParameters);
