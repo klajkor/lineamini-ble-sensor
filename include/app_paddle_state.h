@@ -30,8 +30,8 @@ typedef enum
     REED_SWITCH_STATE_SET_PADDLE_STATE
 } reed_switch_state_enum_t;
 
-void    init_paddle_state_module(void);
-uint8_t get_paddle_switch_state(void);
-void    status_led_off(void);
-void    status_led_on(void);
-void    xTask_read_reed_switch(void *pvParameters);
+void        init_paddle_state_module(void);
+uint8_t     get_paddle_switch_state(void);
+void        status_led_off(void);
+void        status_led_on(void);
+static void xTask_read_reed_switch(void *pvParameters);

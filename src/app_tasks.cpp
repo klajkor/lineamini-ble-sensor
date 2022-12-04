@@ -20,8 +20,8 @@
 #define DELAY_VOLTMETERREAD_MS (pdMS_TO_TICKS(100U))
 #define DELAY_DATAFRAMEBUILD_MS (pdMS_TO_TICKS(200U))
 
-TaskHandle_t xHandle_VoltMeterRead = NULL;
-TaskHandle_t xHandle_DataFrameBuild = NULL;
+static TaskHandle_t xHandle_VoltMeterRead = NULL;
+static TaskHandle_t xHandle_DataFrameBuild = NULL;
 
 void Create_App_Tasks(void)
 {
@@ -51,7 +51,7 @@ void Create_App_Tasks(void)
     }
 }
 
-void xTaskVoltMeterRead(void *pvParameters)
+static void xTaskVoltMeterRead(void *pvParameters)
 {
     uint32_t task_delay;
     uint32_t read_cycles = 0;
@@ -104,7 +104,7 @@ void xTaskVoltMeterRead(void *pvParameters)
     vTaskDelete(xHandle_VoltMeterRead);
 }
 
-void xTaskDataFrameBuild(void *pvParameters)
+static void xTaskDataFrameBuild(void *pvParameters)
 {
     uint32_t task_delay;
 

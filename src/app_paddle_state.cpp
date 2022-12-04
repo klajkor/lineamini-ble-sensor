@@ -18,8 +18,8 @@
 
 #define DELAY_READ_REED_SWITCH_MS (pdMS_TO_TICKS(10U)) // 100Hz
 
-TaskHandle_t        xHandle_ReadReedSwitch = NULL;
-paddle_state_enum_t current_paddle_state = PADDLE_STATE_OFF;
+static TaskHandle_t        xHandle_ReadReedSwitch = NULL;
+static paddle_state_enum_t current_paddle_state = PADDLE_STATE_OFF;
 
 void init_paddle_state_module(void)
 {
@@ -53,7 +53,7 @@ void status_led_on(void)
     digitalWrite(GPIO_STATUS_PIN, STATUS_LED_ON);
 }
 
-void xTask_read_reed_switch(void *pvParameters)
+static void xTask_read_reed_switch(void *pvParameters)
 {
     uint32_t            task_delay;
     uint16_t            binary_counter = 0;
