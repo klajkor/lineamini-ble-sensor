@@ -12,12 +12,12 @@
 #include <string.h>
 
 #define FRAME_START_BYTE (0xA5)
-#define FRAME_STOP_BYTE (0x0A)
+#define FRAME_STOP_BYTE (0xEE)
 #define FRAME_CRC_BYTE_POS ((uint8_t)13)
 #define CRC_DEFAULT_VALUE (0xFF)
 #define CRC_POLYNOM (0x31)
 
-typedef struct ble_data_frame_struct_t
+typedef struct __attribute__((packed))
 {
     uint8_t start_byte;
     uint8_t paddle_state;
