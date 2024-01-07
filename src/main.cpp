@@ -26,8 +26,16 @@
 #include "device_config.h"
 #include "main_defs.h"
 
+#define ESPRESSIF_MANUFACTURER_ID // Manufacturer ID 0x02E5 (Espressif Inc)
+
 #define SENSOR_SERVICE_UUID (BLEUUID((uint16_t)0x183B))        // Binary Sensor service, Bluetooth Core Specification
 #define SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2AC4)) // Object Properties, Bluetooth Core Specification
+
+#define DEVICE_INFORMATION_SERVICE_UUID                                                                               \
+    (BLEUUID((uint16_t)0x180A)) // Device Information service, Bluetooth Core Specification
+#define VOLTAGE_SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2B18))
+#define STATUS_FLAGS_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2BBB))
+#define TIME_SECOND_16_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2B16))
 
 uint32_t boot_count = 0;
 
@@ -35,7 +43,9 @@ const char tx_node_version[] = "Linea Mini BLE Sensor v0.1";
 
 BLEServer             *pServer;
 BLEService            *pService;
-BLECharacteristic     *pCharacteristic;
+BLECharacteristic     *pCharVoltage;
+BLECharacteristic     *pCharStatus;
+BLECharacteristic     *pCharTime;
 BLEAdvertising        *pAdvertising;
 ble_data_frame_union_t message_from_queue;
 bool                   deviceConnected = false;
@@ -70,13 +80,16 @@ void setup(void)
     BLEDevice::init(tx_node_version);
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
-    pService = pServer->createService(SENSOR_SERVICE_UUID);
-    pCharacteristic = pService->createCharacteristic(
-        SENSOR_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
-    pCharacteristic->addDescriptor(new BLE2902());
+    pService = pServer->createService(DEVICE_INFORMATION_SERVICE_UUID);
+    pCharVoltage =
+        pService->createCharacteristic(VOLTAGE_SENSOR_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ);
+    pCharVoltage->addDescriptor(new BLE2902());
+    pCharStatus = pService->createCharacteristic(
+        STATUS_FLAGS_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+    pCharTime = pService->createCharacteristic(TIME_SECOND_16_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ);
     pService->start();
     pAdvertising = BLEDevice::getAdvertising();
-    pAdvertising->addServiceUUID(SENSOR_SERVICE_UUID);
+    pAdvertising->addServiceUUID(DEVICE_INFORMATION_SERVICE_UUID);
     pAdvertising->setScanResponse(false);
     pAdvertising->setMinPreferred(0x0); // set value to 0x00 to not advertise this parameter
     BLEAdvertisementData adv;
@@ -105,7 +118,10 @@ void setup(void)
 
 void loop()
 {
-    uint8_t tmp_array[sizeof(message_from_queue)];
+    uint8_t  tmp_array[sizeof(message_from_queue)];
+    uint32_t ntc_millivolt = 0;
+    uint8_t  paddle_state = 0;
+    uint16_t total_seconds = 0;
 
     if (measurements_q_handle != NULL)
     {
@@ -119,10 +135,19 @@ void loop()
                 Serial.printf("Timer state: %d, ", message_from_queue.struct_data_frame.timer_state);
                 Serial.printf("VCC mV: %4i, ", message_from_queue.struct_data_frame.vcc_millivolt);
                 Serial.printf("NTC mV: %4i", message_from_queue.struct_data_frame.ntc_millivolt);
+                ntc_millivolt = message_from_queue.struct_data_frame.ntc_millivolt;
+                paddle_state = message_from_queue.struct_data_frame.paddle_state;
+                total_seconds = (message_from_queue.struct_data_frame.timer_minutes * 60) +
+                                message_from_queue.struct_data_frame.timer_seconds;
                 if (deviceConnected)
                 {
-                    pCharacteristic->setValue((uint8_t *)&message_from_queue, sizeof(message_from_queue));
-                    pCharacteristic->notify(true);
+                    // pCharVoltage->setValue((uint8_t *)&message_from_queue, sizeof(message_from_queue));
+                    pCharVoltage->setValue(ntc_millivolt);
+                    pCharVoltage->notify(true);
+                    pCharStatus->setValue(&paddle_state, 1);
+                    pCharStatus->notify(true);
+                    pCharTime->setValue(total_seconds);
+                    pCharTime->notify(true);
                     Serial.printf(" BLE notified");
                 }
                 Serial.printf("\r\n");
