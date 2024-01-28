@@ -26,7 +26,7 @@
 #include "device_config.h"
 #include "main_defs.h"
 
-#define ESPRESSIF_MANUFACTURER_ID // Manufacturer ID 0x02E5 (Espressif Inc)
+#define ESPRESSIF_MANUFACTURER_ID 0x02E5 // Manufacturer ID 0x02E5 (Espressif Inc)
 
 #define SENSOR_SERVICE_UUID (BLEUUID((uint16_t)0x183B))        // Binary Sensor service, Bluetooth Core Specification
 #define SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2AC4)) // Object Properties, Bluetooth Core Specification
@@ -40,6 +40,7 @@
 uint32_t boot_count = 0;
 
 const char tx_node_version[] = "Linea Mini BLE Sensor v0.1";
+std::string node_name = (char *)tx_node_version;
 
 BLEServer             *pServer;
 BLEService            *pService;
@@ -81,17 +82,23 @@ void setup(void)
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
     pService = pServer->createService(DEVICE_INFORMATION_SERVICE_UUID);
-    pCharVoltage =
-        pService->createCharacteristic(VOLTAGE_SENSOR_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ);
+    pCharVoltage = pService->createCharacteristic(
+        VOLTAGE_SENSOR_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
     pCharVoltage->addDescriptor(new BLE2902());
     pCharStatus = pService->createCharacteristic(
         STATUS_FLAGS_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
-    pCharTime = pService->createCharacteristic(TIME_SECOND_16_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ);
+    pCharStatus->addDescriptor(new BLE2902());
+    pCharTime = pService->createCharacteristic(TIME_SECOND_16_CHARACTERISTIC_UUID,
+                                               BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+    pCharTime->addDescriptor(new BLE2902());
     pService->start();
     pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(DEVICE_INFORMATION_SERVICE_UUID);
-    pAdvertising->setScanResponse(false);
-    pAdvertising->setMinPreferred(0x0); // set value to 0x00 to not advertise this parameter
+    //pAdvertising->setScanResponse(false);
+    //pAdvertising->setMinPreferred(0x0); // set value to 0x00 to not advertise this parameter
+    pAdvertising->setScanResponse(true);
+    pAdvertising->setMinPreferred(0x06); // help with iPhone connections issue
+    pAdvertising->setMaxPreferred(0x12);
     BLEAdvertisementData adv;
     uint8_t              md[9] = {0xDE, 0xDE};
     BLEAddress           mac_addr = BLEDevice::getAddress();
