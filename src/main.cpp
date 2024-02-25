@@ -28,20 +28,13 @@
 
 #define ESPRESSIF_MANUFACTURER_ID 0x02E5 // Manufacturer ID 0x02E5 (Espressif Inc)
 
-// #define SENSOR_SERVICE_UUID (BLEUUID((uint16_t)0x183B))        // Binary Sensor service, Bluetooth Core
-// Specification #define SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2AC4)) // Object Properties, Bluetooth Core
-// Specification
-
 #define DEVICE_INFORMATION_SERVICE_UUID                                                                               \
     (BLEUUID((uint16_t)0x180A)) // Device Information service, Bluetooth Core Specification
 
 #define SENSOR_SERVICE_UUID "018ddfb8-9527-7c42-ad5e-68938c63f8da"
-// #define VOLTAGE_SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2B18))
-#define VOLTAGE_SENSOR_CHARACTERISTIC_UUID "018ddfb8-9527-7d1a-83ae-3fc50bcba896"
-// #define STATUS_FLAGS_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2BBB))
-#define SHOT_TIMER_CHARACTERISTIC_UUID "018ddfb8-9527-7d30-9787-1398271d58e6"
-// #define TIME_SECOND_16_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2B16))
-#define SENSOR_CONTROL_CHARACTERISTIC_UUID "018ddfb8-9527-7ed0-bded-146e85beef00"
+#define SHOT_TIMER_CHARACTERISTIC_UUID "018ddfb8-9527-7d1a-83ae-3fc50bcba896"
+#define VOLTAGE_SENSOR_CHARACTERISTIC_UUID "018ddfb8-9527-7d30-9787-1398271d58e6"
+#define SENSOR_CONTROL_CHARACTERISTIC_UUID "018ddfb8-9527-7ed0-bded-146e85beef00" // TBD
 
 uint32_t boot_count = 0;
 
@@ -89,12 +82,12 @@ void setup(void)
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
     pService = pServer->createService(SENSOR_SERVICE_UUID);
-    pCharVoltage = pService->createCharacteristic(
-        VOLTAGE_SENSOR_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
-    pCharVoltage->addDescriptor(new BLE2902());
     pCharShotTimer = pService->createCharacteristic(
         SHOT_TIMER_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
     pCharShotTimer->addDescriptor(new BLE2902());
+    pCharVoltage = pService->createCharacteristic(
+        VOLTAGE_SENSOR_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+    pCharVoltage->addDescriptor(new BLE2902());
     // pCharTime = pService->createCharacteristic(TIME_SECOND_16_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ|
     // BLECharacteristic::PROPERTY_NOTIFY);
     // pCharTime->addDescriptor(new BLE2902());
