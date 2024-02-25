@@ -28,25 +28,31 @@
 
 #define ESPRESSIF_MANUFACTURER_ID 0x02E5 // Manufacturer ID 0x02E5 (Espressif Inc)
 
-#define SENSOR_SERVICE_UUID (BLEUUID((uint16_t)0x183B))        // Binary Sensor service, Bluetooth Core Specification
-#define SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2AC4)) // Object Properties, Bluetooth Core Specification
+// #define SENSOR_SERVICE_UUID (BLEUUID((uint16_t)0x183B))        // Binary Sensor service, Bluetooth Core
+// Specification #define SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2AC4)) // Object Properties, Bluetooth Core
+// Specification
 
 #define DEVICE_INFORMATION_SERVICE_UUID                                                                               \
     (BLEUUID((uint16_t)0x180A)) // Device Information service, Bluetooth Core Specification
-#define VOLTAGE_SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2B18))
-#define STATUS_FLAGS_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2BBB))
-#define TIME_SECOND_16_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2B16))
+
+#define SENSOR_SERVICE_UUID "018ddfb8-9527-7c42-ad5e-68938c63f8da"
+// #define VOLTAGE_SENSOR_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2B18))
+#define VOLTAGE_SENSOR_CHARACTERISTIC_UUID "018ddfb8-9527-7d1a-83ae-3fc50bcba896"
+// #define STATUS_FLAGS_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2BBB))
+#define SHOT_TIMER_CHARACTERISTIC_UUID "018ddfb8-9527-7d30-9787-1398271d58e6"
+// #define TIME_SECOND_16_CHARACTERISTIC_UUID (BLEUUID((uint16_t)0x2B16))
+#define SENSOR_CONTROL_CHARACTERISTIC_UUID "018ddfb8-9527-7ed0-bded-146e85beef00"
 
 uint32_t boot_count = 0;
 
-const char tx_node_version[] = "Linea Mini BLE Sensor v0.1";
+const char  tx_node_version[] = "Shot Timer BLE Sensor v0.2";
 std::string node_name = (char *)tx_node_version;
 
-BLEServer             *pServer;
-BLEService            *pService;
-BLECharacteristic     *pCharVoltage;
-BLECharacteristic     *pCharStatus;
-BLECharacteristic     *pCharTime;
+BLEServer         *pServer;
+BLEService        *pService;
+BLECharacteristic *pCharVoltage;
+BLECharacteristic *pCharShotTimer;
+// BLECharacteristic     *pCharTime;
 BLEAdvertising        *pAdvertising;
 ble_data_frame_union_t message_from_queue;
 bool                   deviceConnected = false;
@@ -61,6 +67,7 @@ class MyServerCallbacks : public BLEServerCallbacks
     void onDisconnect(BLEServer *pServer)
     {
         deviceConnected = false;
+        pServer->startAdvertising(); // restart advertising
     }
 };
 
@@ -81,21 +88,23 @@ void setup(void)
     BLEDevice::init(tx_node_version);
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
-    pService = pServer->createService(DEVICE_INFORMATION_SERVICE_UUID);
+    pService = pServer->createService(SENSOR_SERVICE_UUID);
     pCharVoltage = pService->createCharacteristic(
         VOLTAGE_SENSOR_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
     pCharVoltage->addDescriptor(new BLE2902());
-    pCharStatus = pService->createCharacteristic(
-        STATUS_FLAGS_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
-    pCharStatus->addDescriptor(new BLE2902());
-    pCharTime = pService->createCharacteristic(TIME_SECOND_16_CHARACTERISTIC_UUID,
-                                               BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
-    pCharTime->addDescriptor(new BLE2902());
+    pCharShotTimer = pService->createCharacteristic(
+        SHOT_TIMER_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+    pCharShotTimer->addDescriptor(new BLE2902());
+    // pCharTime = pService->createCharacteristic(TIME_SECOND_16_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_READ|
+    // BLECharacteristic::PROPERTY_NOTIFY);
+    // pCharTime->addDescriptor(new BLE2902());
+
     pService->start();
     pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(DEVICE_INFORMATION_SERVICE_UUID);
-    //pAdvertising->setScanResponse(false);
-    //pAdvertising->setMinPreferred(0x0); // set value to 0x00 to not advertise this parameter
+    // pAdvertising->setScanResponse(false);
+    // pAdvertising->setMinPreferred(0x0); // set value to 0x00 to not
+    // advertise this parameter
     pAdvertising->setScanResponse(true);
     pAdvertising->setMinPreferred(0x06); // help with iPhone connections issue
     pAdvertising->setMaxPreferred(0x12);
@@ -126,6 +135,8 @@ void setup(void)
 void loop()
 {
     uint8_t  tmp_array[sizeof(message_from_queue)];
+    uint32_t voltage_packet[2];
+    uint8_t  shot_timer_packet[3];
     uint32_t ntc_millivolt = 0;
     uint8_t  paddle_state = 0;
     uint16_t total_seconds = 0;
@@ -149,12 +160,17 @@ void loop()
                 if (deviceConnected)
                 {
                     // pCharVoltage->setValue((uint8_t *)&message_from_queue, sizeof(message_from_queue));
-                    pCharVoltage->setValue(ntc_millivolt);
+                    voltage_packet[0] = message_from_queue.struct_data_frame.vcc_millivolt;
+                    voltage_packet[1] = message_from_queue.struct_data_frame.ntc_millivolt;
+                    pCharVoltage->setValue((uint8_t *)&voltage_packet, sizeof(voltage_packet));
                     pCharVoltage->notify(true);
-                    pCharStatus->setValue(&paddle_state, 1);
-                    pCharStatus->notify(true);
-                    pCharTime->setValue(total_seconds);
-                    pCharTime->notify(true);
+                    shot_timer_packet[0] = message_from_queue.struct_data_frame.paddle_state;
+                    shot_timer_packet[1] = message_from_queue.struct_data_frame.timer_seconds;
+                    shot_timer_packet[2] = message_from_queue.struct_data_frame.timer_minutes;
+                    pCharShotTimer->setValue((uint8_t *)&shot_timer_packet, sizeof(shot_timer_packet));
+                    pCharShotTimer->notify(true);
+                    // pCharTime->setValue(total_seconds);
+                    // pCharTime->notify(true);
                     Serial.printf(" BLE notified");
                 }
                 Serial.printf("\r\n");
