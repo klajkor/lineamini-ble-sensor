@@ -41,3 +41,6 @@ void GPIO_init(void);
 
 // If address is present, then returns 0, otherwise returns an error code
 uint8_t checkI2Caddress_0(int _address);
+
+void print_endian(void);
+void copy_ble_mac_address(uint8_t *p_dest_buffer);

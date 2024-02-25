@@ -25,6 +25,7 @@
 #include "ble_data_frame.h"
 #include "device_config.h"
 #include "main_defs.h"
+#include "midw_packet_composer.h"
 
 #define ESPRESSIF_MANUFACTURER_ID 0x02E5 // Manufacturer ID 0x02E5 (Espressif Inc)
 
@@ -48,7 +49,9 @@ BLECharacteristic *pCharShotTimer;
 // BLECharacteristic     *pCharTime;
 BLEAdvertising        *pAdvertising;
 ble_data_frame_union_t message_from_queue;
-bool                   deviceConnected = false;
+
+bool    deviceConnected = false;
+uint8_t ble_mac_address[6];
 
 class MyServerCallbacks : public BLEServerCallbacks
 {
@@ -77,6 +80,7 @@ void setup(void)
     Serial.print("Boot count: ");
     Serial.println(boot_count);
     nvs_usage_info();
+    init_packet_composer();
 
     BLEDevice::init(tx_node_version);
     pServer = BLEDevice::createServer();
@@ -104,6 +108,10 @@ void setup(void)
     BLEAdvertisementData adv;
     uint8_t              md[9] = {0xDE, 0xDE};
     BLEAddress           mac_addr = BLEDevice::getAddress();
+    memcpy(ble_mac_address, *mac_addr.getNative(), 6);
+    Serial.printf("BLE MAC: ");
+    Serial.printf("%02X:%02X:%02X:", ble_mac_address[0], ble_mac_address[1], ble_mac_address[2]);
+    Serial.printf("%02X:%02X:%02X\n", ble_mac_address[3], ble_mac_address[4], ble_mac_address[5]);
     memcpy(md + 2, *mac_addr.getNative(), 6);
     md[8] = 0; // string need \x00 at the end
     std::string mds = (char *)md;
@@ -140,12 +148,14 @@ void loop()
         {
             if (messageValidate(&message_from_queue) == validate_OK)
             {
+                /*
                 Serial.printf("Paddle state: %d, ", message_from_queue.struct_data_frame.paddle_state);
                 Serial.printf("%02d:%02d ", message_from_queue.struct_data_frame.timer_minutes,
                               message_from_queue.struct_data_frame.timer_seconds);
                 Serial.printf("Timer state: %d, ", message_from_queue.struct_data_frame.timer_state);
                 Serial.printf("VCC mV: %4i, ", message_from_queue.struct_data_frame.vcc_millivolt);
                 Serial.printf("NTC mV: %4i", message_from_queue.struct_data_frame.ntc_millivolt);
+                */
                 ntc_millivolt = message_from_queue.struct_data_frame.ntc_millivolt;
                 paddle_state = message_from_queue.struct_data_frame.paddle_state;
                 total_seconds = (message_from_queue.struct_data_frame.timer_minutes * 60) +
@@ -166,8 +176,8 @@ void loop()
                     // pCharTime->setValue(total_seconds);
                     // pCharTime->notify(true);
                     Serial.printf(" BLE notified");
+                    Serial.printf("\r\n");
                 }
-                Serial.printf("\r\n");
             }
             else
             {
@@ -211,4 +221,16 @@ uint8_t checkI2Caddress_0(int _address)
 {
     Wire.beginTransmission(_address);
     return Wire.endTransmission();
+}
+
+void print_endian(void)
+{
+    uint32_t       x = 0x12345678;
+    const uint8_t *p = reinterpret_cast<const uint8_t *>(&x);
+    Serial.printf("%02X%02X%02X%02X\n", p[0], p[1], p[2], p[3]);
+}
+
+void copy_ble_mac_address(uint8_t *p_dest_buffer)
+{
+    memcpy(p_dest_buffer, ble_mac_address, 6);
 }
