@@ -14,8 +14,6 @@
 #define FRAME_START_BYTE (0xA5)
 #define FRAME_STOP_BYTE (0xEE)
 #define FRAME_CRC_BYTE_POS ((uint8_t)13)
-#define CRC_DEFAULT_VALUE (0xFF)
-#define CRC_POLYNOM (0x31)
 
 typedef struct __attribute__((packed))
 {
@@ -59,4 +57,3 @@ ble_data_frame_ret_val_enum  build_ble_frame_to_send(uint8_t paddle_state_i, uin
                                                      ble_data_frame_array_t *p_data_frame);
 messageValidate_ret_val_enum messageValidate(ble_data_frame_union_t *pdata_frame);
 
-uint8_t gencrc8(uint8_t *data, uint8_t len);
