@@ -123,7 +123,7 @@ static void xTaskDataFrameBuild(void *pvParameters)
         measured_voltages = voltmeter_get_last_reading();
         shot_timer_values = get_shot_timer_values();
         build_ble_frame_to_send(get_paddle_switch_state(), shot_timer_values.minutes, shot_timer_values.seconds,
-                                (uint8_t)shot_timer_values.state, measured_voltages.vcc_millivolt,
+                                shot_timer_values.state, measured_voltages.vcc_millivolt,
                                 measured_voltages.ntc_millivolt, &ble_data_frame);
         if (measurements_q_handle != NULL)
         {

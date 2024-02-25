@@ -10,7 +10,7 @@
 #include "app_timer.h"
 
 #define SECONDS_TIMER_PERIOD (pdMS_TO_TICKS(1000U))
-#define COOLDOWN_TIMER_PERIOD (pdMS_TO_TICKS(3000U))
+#define COOLDOWN_TIMER_PERIOD (pdMS_TO_TICKS(5000U))
 
 static TimerHandle_t xSecondsTimer;
 static BaseType_t    xSecondsTimerStarted;
@@ -97,6 +97,7 @@ void start_cooldown_timer(void)
     {
         Serial.println("!> Failed to activate cooldown timer");
     }
+    espresso_shot_timer.state = SHOT_TIMER_HOLD;
 }
 
 void stop_cooldown_timer(void)

@@ -136,7 +136,7 @@ void loop()
 {
     uint8_t  tmp_array[sizeof(message_from_queue)];
     uint32_t voltage_packet[2];
-    uint8_t  shot_timer_packet[3];
+    uint8_t  shot_timer_packet[4];
     uint32_t ntc_millivolt = 0;
     uint8_t  paddle_state = 0;
     uint16_t total_seconds = 0;
@@ -165,8 +165,9 @@ void loop()
                     pCharVoltage->setValue((uint8_t *)&voltage_packet, sizeof(voltage_packet));
                     pCharVoltage->notify(true);
                     shot_timer_packet[0] = message_from_queue.struct_data_frame.paddle_state;
-                    shot_timer_packet[1] = message_from_queue.struct_data_frame.timer_seconds;
-                    shot_timer_packet[2] = message_from_queue.struct_data_frame.timer_minutes;
+                    shot_timer_packet[1] = message_from_queue.struct_data_frame.timer_minutes;
+                    shot_timer_packet[2] = message_from_queue.struct_data_frame.timer_seconds;
+                    shot_timer_packet[3] = message_from_queue.struct_data_frame.timer_state;
                     pCharShotTimer->setValue((uint8_t *)&shot_timer_packet, sizeof(shot_timer_packet));
                     pCharShotTimer->notify(true);
                     // pCharTime->setValue(total_seconds);

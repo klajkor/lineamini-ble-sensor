@@ -20,14 +20,15 @@ typedef enum
 {
     SHOT_TIMER_RESET = 0,
     SHOT_TIMER_RUNNING,
-    SHOT_TIMER_STOPPED
+    SHOT_TIMER_STOPPED,
+    SHOT_TIMER_HOLD
 } shot_timer_state_t;
 
 typedef struct shot_timer_t
 {
-    uint8_t            minutes;
-    uint8_t            seconds;
-    shot_timer_state_t state;
+    uint8_t minutes;
+    uint8_t seconds;
+    uint8_t state;
 } shot_timer_t;
 
 void         init_timers(void);
